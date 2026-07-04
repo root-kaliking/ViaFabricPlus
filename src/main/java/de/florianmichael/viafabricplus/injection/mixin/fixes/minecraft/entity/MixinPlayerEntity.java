@@ -69,7 +69,7 @@ public abstract class MixinPlayerEntity extends LivingEntity {
     private static final EntityDimensions viaFabricPlus$sneaking_dimensions_v1_13_2 = EntityDimensions.changing(0.6F, 1.65F).withEyeHeight(1.54F);
 
     @Unique
-    private static final SoundEvent viaFabricPlus$oof_hurt = SoundEvent.of(new Identifier("viafabricplus", "oof.hurt"));
+    private static final SoundEvent viaFabricPlus$oof_hurt = SoundEvent.of(Identifier.of("viafabricplus", "oof.hurt"));
 
     @Unique
     public boolean viaFabricPlus$isSprinting;

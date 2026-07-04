@@ -21,11 +21,11 @@ package de.florianmichael.viafabricplus.injection.mixin.base.perserverversion;
 
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import de.florianmichael.viafabricplus.injection.access.IMultiValueDebugSampleLogImpl;
-import net.minecraft.util.profiler.MultiValueDebugSampleLogImpl;
+import net.minecraft.network.handler.PacketSizeLogger;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
-@Mixin(MultiValueDebugSampleLogImpl.class)
+@Mixin(PacketSizeLogger.class)
 public abstract class MixinMultiValueDebugSampleLogImpl implements IMultiValueDebugSampleLogImpl {
 
     @Unique

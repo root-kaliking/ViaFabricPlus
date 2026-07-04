@@ -98,7 +98,7 @@ public abstract class MixinLivingEntity extends Entity {
     @Redirect(method = "tickMovement", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;isLogicalSideForUpdatingMovement()Z"))
     private boolean allowPlayerToBeMovedByEntityPackets(LivingEntity instance) {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_19_3) || ProtocolTranslator.getTargetVersion().equals(BedrockProtocolVersion.bedrockLatest)) {
-            return instance.getControllingPassenger() instanceof PlayerEntity player ? player.isMainPlayer() : !instance.getWorld().isClient;
+            return instance.getControllingPassenger() instanceof PlayerEntity player ? player.isMainPlayer() : !instance.world.isClient;
         } else {
             return instance.isLogicalSideForUpdatingMovement();
         }
@@ -132,9 +132,9 @@ public abstract class MixinLivingEntity extends Entity {
     @Redirect(method = "travel", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;isChunkLoaded(Lnet/minecraft/util/math/BlockPos;)Z"))
     private boolean modifyLoadedCheck(World instance, BlockPos blockPos) {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_13_2)) {
-            return this.getWorld().isChunkLoaded(blockPos) && instance.getChunkManager().isChunkLoaded(blockPos.getX() >> 4, blockPos.getZ() >> 4);
+            return this.world.isChunkLoaded(blockPos) && instance.getChunkManager().isChunkLoaded(blockPos.getX() >> 4, blockPos.getZ() >> 4);
         } else {
-            return this.getWorld().isChunkLoaded(blockPos);
+            return this.world.isChunkLoaded(blockPos);
         }
     }
 
@@ -234,7 +234,7 @@ public abstract class MixinLivingEntity extends Entity {
     private void allowGappedLadderClimb(CallbackInfoReturnable<Boolean> cir) {
         if (ProtocolTranslator.getTargetVersion().olderThan(LegacyProtocolVersion.b1_5tob1_5_2) && !cir.getReturnValueZ() && !this.isSpectator()) {
             final BlockPos blockPos = this.getBlockPos().up();
-            final BlockState blockState = this.getWorld().getBlockState(blockPos);
+            final BlockState blockState = this.world.getBlockState(blockPos);
             if (blockState.isIn(BlockTags.CLIMBABLE)) {
                 this.climbingPos = Optional.of(blockPos);
                 cir.setReturnValue(true);

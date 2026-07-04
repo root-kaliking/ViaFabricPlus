@@ -32,6 +32,7 @@ import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
 import net.minecraft.client.gui.screen.multiplayer.MultiplayerServerListWidget;
 import net.minecraft.client.gui.screen.world.WorldIcon;
 import net.minecraft.client.network.ServerInfo;
+import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.StringVisitable;
 import net.minecraft.text.Text;
@@ -103,11 +104,6 @@ public abstract class MixinMultiplayerServerListWidget_ServerEntry {
         return !viaFabricPlus$disableServerPinging; // Remove ping bar
     }
 
-    @WrapWithCondition(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/multiplayer/MultiplayerScreen;setTooltip(Ljava/util/List;)V"))
-    private boolean disableServerPinging(MultiplayerScreen instance, List<Text> tooltip) {
-        return !viaFabricPlus$disableServerPinging; // Remove player list tooltip
-    }
-
     @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/world/WorldIcon;getTextureId()Lnet/minecraft/util/Identifier;"))
     private Identifier disableServerPinging(WorldIcon instance) {
         if (viaFabricPlus$disableServerPinging) { // Remove server icon
@@ -117,13 +113,13 @@ public abstract class MixinMultiplayerServerListWidget_ServerEntry {
         }
     }
 
-    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/multiplayer/MultiplayerScreen;setTooltip(Lnet/minecraft/text/Text;)V"))
-    private void drawTranslatingState(MultiplayerScreen instance, Text text) {
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screen/multiplayer/MultiplayerScreen;setTooltip(Lnet/minecraft/client/gui/tooltip/Tooltip;)V"))
+    private void drawTranslatingState(MultiplayerScreen instance, Tooltip tooltip) {
         if (viaFabricPlus$disableServerPinging) { // Remove ping bar tooltip
             return;
         }
         final List<Text> tooltips = new ArrayList<>();
-        tooltips.add(text);
+        tooltips.add(tooltip.getContent());
         if (GeneralSettings.global().showAdvertisedServerVersion.getValue()) {
             final ProtocolVersion version = ((IServerInfo) server).viaFabricPlus$translatingVersion();
             if (version != null) {
@@ -131,7 +127,7 @@ public abstract class MixinMultiplayerServerListWidget_ServerEntry {
                 tooltips.add(Text.translatable("base.viafabricplus.server_version", server.version.getString() + " (" + server.protocolVersion + ")"));
             }
         }
-        instance.setTooltip(Lists.transform(tooltips, Text::asOrderedText));
+        instance.setTooltip(Tooltip.of(tooltips.get(0), tooltips.size() > 1 ? tooltips.get(1) : null));
     }
 
 }
