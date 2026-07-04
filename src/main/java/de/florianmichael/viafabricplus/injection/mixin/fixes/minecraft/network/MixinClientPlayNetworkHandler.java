@@ -40,11 +40,9 @@ import net.minecraft.item.Items;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.RecipePropertySet;
-import net.minecraft.recipe.StonecuttingRecipe;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.Grouping;
+
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import net.raphimc.viabedrock.api.BedrockProtocolVersion;
@@ -125,7 +123,7 @@ public abstract class MixinClientPlayNetworkHandler extends ClientCommonNetworkH
 
     @WrapWithCondition(method = "onPlayerRespawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayNetworkHandler;startWorldLoading(Lnet/minecraft/client/network/ClientPlayerEntity;Lnet/minecraft/client/world/ClientWorld;)V"))
     private boolean checkDimensionChange(ClientPlayNetworkHandler instance, ClientPlayerEntity player, ClientWorld world, @Local(ordinal = 0) RegistryKey<World> registryKey) {
-        return ProtocolTranslator.getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_20_3) || registryKey != this.client.player.getWorld().getRegistryKey();
+        return ProtocolTranslator.getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_20_3) || registryKey != this.client.player.clientWorld.getRegistryKey();
     }
 
     @WrapWithCondition(method = "onChatMessage", at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;error(Ljava/lang/String;Ljava/lang/Object;)V", remap = false))
@@ -153,7 +151,7 @@ public abstract class MixinClientPlayNetworkHandler extends ClientCommonNetworkH
     @Redirect(method = {"onEntityPosition", "onEntity"}, at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;isLogicalSideForUpdatingMovement()Z"))
     private boolean allowPlayerToBeMovedByEntityPackets(Entity instance) {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_19_3) || ProtocolTranslator.getTargetVersion().equals(BedrockProtocolVersion.bedrockLatest)) {
-            return instance.getControllingPassenger() instanceof PlayerEntity player ? player.isMainPlayer() : !instance.getWorld().isClient();
+            return instance.getControllingPassenger() instanceof PlayerEntity player ? player.isMainPlayer() : !this.client.world.isClient();
         } else {
             return instance.isLogicalSideForUpdatingMovement();
         }
@@ -205,7 +203,7 @@ public abstract class MixinClientPlayNetworkHandler extends ClientCommonNetworkH
             for (int i = 0; i < recipeInfos.size(); i++) {
                 recipes.add(recipeInfos.get(i).create(Identifier.of("viafabricplus", "recipe/" + i)));
             }
-            this.onSynchronizeRecipes(new SynchronizeRecipesS2CPacket(Collections.emptyMap(), new Grouping<>(new it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet<>())));
+            this.onSynchronizeRecipes(new SynchronizeRecipesS2CPacket(Collections.emptyMap(), new it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet<>()));
         }
         ClientsideFixes.GLOBAL_TABLIST_INDEX = 0;
         ((IPlayerListHud) MinecraftClient.getInstance().inGameHud.getPlayerListHud()).viaFabricPlus$setMaxPlayers(packet.maxPlayers());

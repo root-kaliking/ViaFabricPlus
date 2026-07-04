@@ -34,7 +34,6 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerAbilities;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.Equipment;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -121,7 +120,7 @@ public abstract class MixinPlayerEntity extends LivingEntity {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_14_4)) {
             if (!this.isOnGround() && this.getVelocity().y < 0D && !this.isGliding()) {
                 final ItemStack itemStack = this.getEquippedStack(EquipmentSlot.CHEST);
-                if (itemStack.isOf(Items.ELYTRA) && Equipment.isUsable(itemStack)) {
+                if (itemStack.isOf(Items.ELYTRA) && itemStack.getDamage() < itemStack.getMaxDamage() - 1) {
                     cir.setReturnValue(true);
                     return;
                 }

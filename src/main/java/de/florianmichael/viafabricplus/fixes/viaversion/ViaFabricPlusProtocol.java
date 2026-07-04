@@ -33,8 +33,6 @@ import com.viaversion.viaversion.util.Key;
 import de.florianmichael.viafabricplus.protocoltranslator.ProtocolTranslator;
 import net.minecraft.network.packet.BrandCustomPayload;
 import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.network.packet.s2c.common.DebugGameTestAddMarkerCustomPayload;
-import net.minecraft.network.packet.s2c.common.DebugGameTestClearCustomPayload;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
 import net.raphimc.viabedrock.api.BedrockProtocolVersion;
@@ -52,13 +50,6 @@ public class ViaFabricPlusProtocol extends AbstractSimpleProtocol {
 
     public ViaFabricPlusProtocol() {
         registerMapping(BrandCustomPayload.ID, LegacyProtocolVersion.c0_0_15a_1, wrapper -> wrapper.passthrough(Types.STRING));
-        registerMapping(DebugGameTestAddMarkerCustomPayload.ID, ProtocolVersion.v1_14, wrapper -> {
-            wrapper.passthrough(Types.BLOCK_POSITION1_14);
-            wrapper.passthrough(Types.INT);
-            wrapper.passthrough(Types.STRING);
-            wrapper.passthrough(Types.INT);
-        });
-        registerMapping(DebugGameTestClearCustomPayload.ID, ProtocolVersion.v1_14, wrapper -> {});
     }
 
     @Override

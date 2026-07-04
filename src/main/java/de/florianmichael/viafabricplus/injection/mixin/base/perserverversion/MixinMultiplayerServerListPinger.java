@@ -50,7 +50,7 @@ public abstract class MixinMultiplayerServerListPinger {
             mixinServerInfo.viaFabricPlus$passDirectConnectScreen(false);
         }
 
-        return ClientConnection.connect(address, useEpoll);
+        return ClientConnection.connect(address, useEpoll, new net.minecraft.network.PacketSizeLogger(1));
     }
 
 }

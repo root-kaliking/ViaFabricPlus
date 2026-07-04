@@ -28,12 +28,16 @@ import net.minecraft.entity.passive.CamelEntity;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(CamelEntity.class)
 public abstract class MixinCamelEntity extends AbstractHorseEntity {
 
-    public MixinCamelEntity(EntityType<? extends AbstractHorseEntity> entityType, World world) {
+    @Shadow
+    private float prevYaw;
+
+    protected MixinCamelEntity(final EntityType<? extends AbstractHorseEntity> entityType, final World world) {
         super(entityType, world);
     }
 

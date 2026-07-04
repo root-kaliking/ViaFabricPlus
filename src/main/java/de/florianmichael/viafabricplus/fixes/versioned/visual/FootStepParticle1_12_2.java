@@ -23,7 +23,7 @@ import net.minecraft.util.Identifier;
 
 public class FootStepParticle1_12_2 {
 
-    public static final Identifier ID = Identifier.of("viafabricplus", "footstep");
+    public static final Identifier ID = Identifier.of("viafabricplus:footstep");
     public static final int RAW_ID = 32;
 
     public static void init() {

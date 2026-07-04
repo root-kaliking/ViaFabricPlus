@@ -26,7 +26,7 @@ import net.minecraft.util.Identifier;
 
 public class BoatModel1_8 {
 
-    public static final EntityModelLayer MODEL_LAYER = new EntityModelLayer(Identifier.of("viafabricplus", "boat_1_8"), "main");
+    public static final EntityModelLayer MODEL_LAYER = new EntityModelLayer(Identifier.of("viafabricplus:boat_1_8"));
 
     public static TexturedModelData getTexturedModelData() {
         return TexturedModelData.of(null, 64, 64);
