@@ -28,7 +28,7 @@ import com.viaversion.viaversion.api.protocol.packet.State;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import com.viaversion.viaversion.api.type.Type;
 import com.viaversion.viaversion.api.type.Types;
-import com.viaversion.viaversion.api.type.types.version.Types1_21_11;
+import com.viaversion.viaversion.api.type.types.version.Types1_20_5;
 import com.viaversion.viaversion.protocols.v1_12to1_12_1.packet.ClientboundPackets1_12_1;
 import de.florianmichael.viafabricplus.ViaFabricPlus;
 import de.florianmichael.viafabricplus.fixes.viaversion.ViaFabricPlusProtocol;
@@ -144,7 +144,7 @@ public class ItemTranslator {
         } else if (targetVersion.olderThan(ProtocolVersion.v1_20_5)) {
             return Types.ITEM1_20_2;
         } else {
-            return Types1_21_11.ITEM;
+            return Types1_20_5.ITEM;
         }
     }
 
