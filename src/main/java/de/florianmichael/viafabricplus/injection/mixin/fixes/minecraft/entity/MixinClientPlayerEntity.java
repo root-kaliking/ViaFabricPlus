@@ -53,6 +53,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 
     @Shadow
+    private float prevYaw;
+
+    @Shadow
     public Input input;
 
     @Shadow
@@ -106,9 +109,9 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
         return ProtocolTranslator.getTargetVersion().newerThan(ProtocolVersion.v1_19_3) && instance.hasVehicle();
     }
 
-    @Redirect(method = "canStartSprinting", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;isFallFlying()Z"))
+    @Redirect(method = "canStartSprinting", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;isGliding()Z"))
     private boolean removeFallFlyingCheck(ClientPlayerEntity instance) {
-        return ProtocolTranslator.getTargetVersion().newerThan(ProtocolVersion.v1_19_3) && instance.isFallFlying();
+        return ProtocolTranslator.getTargetVersion().newerThan(ProtocolVersion.v1_19_3) && instance.isGliding();
     }
 
     @Redirect(method = "canSprint", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;hasVehicle()Z"))
@@ -151,12 +154,15 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
 
     @Inject(method = "tickMovement()V",
             slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;isCamera()Z")),
-            at = @At(value = "FIELD", target = "Lnet/minecraft/client/input/Input;sneaking:Z", ordinal = 0))
+            at = @At(value = "FIELD", target = "Lnet/minecraft/client/input/Input;playerInput:Lnet/minecraft/client/input/Input;", ordinal = 0))
     private void injectTickMovement(CallbackInfo ci) {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_14_4)) {
-            if (this.input.sneaking) {
-                this.input.movementSideways = (float) ((double) this.input.movementSideways / 0.3D);
-                this.input.movementForward = (float) ((double) this.input.movementForward / 0.3D);
+            if (this.input.playerInput.sneaking) {
+                this.input.playerInput = new Input();
+                this.input.playerInput.movementForward = (float) ((double) this.input.playerInput.movementForward / 0.3D);
+                this.input.playerInput.movementSideways = (float) ((double) this.input.playerInput.movementSideways / 0.3D);
+                this.input.playerInput.sneaking = true;
+                this.input.playerInput.jumping = this.input.playerInput.jumping;
             }
         }
     }
@@ -164,14 +170,14 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
     @Inject(method = "isWalking", at = @At("HEAD"), cancellable = true)
     private void easierUnderwaterSprinting(CallbackInfoReturnable<Boolean> cir) {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_14_1)) {
-            cir.setReturnValue(((ClientPlayerEntity) (Object) this).input.movementForward >= 0.8);
+            cir.setReturnValue(((ClientPlayerEntity) (Object) this).input.playerInput.movementForward >= 0.8);
         }
     }
 
     @Redirect(method = "tickMovement()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/input/Input;hasForwardMovement()Z", ordinal = 0))
     private boolean disableSprintSneak(Input input) {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_14_1)) {
-            return input.movementForward >= 0.8F;
+            return input.playerInput.movementForward >= 0.8F;
         } else {
             return input.hasForwardMovement();
         }

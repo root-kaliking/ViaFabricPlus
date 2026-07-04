@@ -23,10 +23,10 @@ import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.protocol.packet.PacketWrapper;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import com.viaversion.viaversion.api.type.Types;
-import com.viaversion.viaversion.protocols.v1_20_2to1_20_3.packet.ClientboundPacket1_20_3;
-import com.viaversion.viaversion.protocols.v1_20_3to1_20_5.Protocol1_20_3To1_20_5;
-import com.viaversion.viaversion.protocols.v1_20_3to1_20_5.packet.ClientboundPackets1_20_5;
-import com.viaversion.viaversion.protocols.v1_20_3to1_20_5.rewriter.EntityPacketRewriter1_20_5;
+import com.viaversion.viaversion.protocols.v1_21_7to1_21_9.packet.ClientboundPacket1_21_9;
+import com.viaversion.viaversion.protocols.v1_21_9to1_21_11.Protocol1_21_9To1_21_11;
+import com.viaversion.viaversion.protocols.v1_21_9to1_21_11.packet.ClientboundPackets1_21_11;
+import com.viaversion.viaversion.protocols.v1_21_9to1_21_11.rewriter.EntityPacketRewriter1_21_11;
 import com.viaversion.viaversion.rewriter.EntityRewriter;
 import net.raphimc.vialegacy.api.LegacyProtocolVersion;
 import org.spongepowered.asm.mixin.Final;
@@ -36,8 +36,8 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import java.util.UUID;
 
-@Mixin(value = EntityPacketRewriter1_20_5.class, remap = false)
-public abstract class MixinEntityPacketRewriter1_20_5 extends EntityRewriter<ClientboundPacket1_20_3, Protocol1_20_3To1_20_5> {
+@Mixin(value = EntityPacketRewriter1_21_11.class, remap = false)
+public abstract class MixinEntityPacketRewriter1_21_11 extends EntityRewriter<ClientboundPacket1_21_9, Protocol1_21_9To1_21_11> {
 
     @Shadow
     @Final
@@ -47,7 +47,7 @@ public abstract class MixinEntityPacketRewriter1_20_5 extends EntityRewriter<Cli
     @Final
     private static UUID CREATIVE_ENTITY_INTERACTION_RANGE;
 
-    protected MixinEntityPacketRewriter1_20_5(Protocol1_20_3To1_20_5 protocol) {
+    protected MixinEntityPacketRewriter1_21_11(Protocol1_21_9To1_21_11 protocol) {
         super(protocol);
     }
 
@@ -60,7 +60,7 @@ public abstract class MixinEntityPacketRewriter1_20_5 extends EntityRewriter<Cli
      */
     @Overwrite
     private void sendRangeAttributes(final UserConnection connection, final boolean creativeMode) {
-        final PacketWrapper updateAttributes = PacketWrapper.create(ClientboundPackets1_20_5.UPDATE_ATTRIBUTES, connection);
+        final PacketWrapper updateAttributes = PacketWrapper.create(ClientboundPackets1_21_11.UPDATE_ATTRIBUTES, connection);
         updateAttributes.write(Types.VAR_INT, this.tracker(connection).clientEntityId());
         if (connection.getProtocolInfo().serverProtocolVersion().olderThanOrEqualTo(ProtocolVersion.v1_7_6)) {
             updateAttributes.write(Types.VAR_INT, 3); // Number of attributes
@@ -80,7 +80,7 @@ public abstract class MixinEntityPacketRewriter1_20_5 extends EntityRewriter<Cli
         } else {
             this.writeAttribute(updateAttributes, "player.entity_interaction_range", 3D, creativeMode ? CREATIVE_ENTITY_INTERACTION_RANGE : null, 2D);
         }
-        updateAttributes.scheduleSend(Protocol1_20_3To1_20_5.class);
+        updateAttributes.scheduleSend(Protocol1_21_9To1_21_11.class);
     }
 
 }

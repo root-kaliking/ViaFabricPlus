@@ -22,8 +22,8 @@ package de.florianmichael.viafabricplus.injection.mixin.fixes.minecraft.entity;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import de.florianmichael.viafabricplus.fixes.viaversion.WolfHealthTracker1_14_4;
 import de.florianmichael.viafabricplus.protocoltranslator.ProtocolTranslator;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.FoodComponent;
+import net.minecraft.component.type.DataComponentTypes;
+import net.minecraft.component.type.FoodProperties;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.Angerable;
 import net.minecraft.entity.passive.TameableEntity;
@@ -64,7 +64,7 @@ public abstract class MixinWolfEntity extends TameableEntity implements Angerabl
             final ItemStack itemStack = player.getStackInHand(hand);
             final Item item = itemStack.getItem();
             if (this.isTamed()) {
-                final FoodComponent foodComponent = itemStack.get(DataComponentTypes.FOOD);
+                final FoodProperties foodComponent = itemStack.get(DataComponentTypes.FOOD);
                 if (foodComponent != null) {
                     if (this.isBreedingItem(itemStack) && this.viaFabricPlus$getWolfHealth() < 20.0F) {
                         if (!player.getAbilities().creativeMode) itemStack.decrement(1);

@@ -19,7 +19,7 @@
 
 package de.florianmichael.viafabricplus.util;
 
-import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 

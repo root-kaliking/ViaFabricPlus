@@ -34,7 +34,6 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerAbilities;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ElytraItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -69,7 +68,7 @@ public abstract class MixinPlayerEntity extends LivingEntity {
     private static final EntityDimensions viaFabricPlus$sneaking_dimensions_v1_13_2 = EntityDimensions.changing(0.6F, 1.65F).withEyeHeight(1.54F);
 
     @Unique
-    private static final SoundEvent viaFabricPlus$oof_hurt = SoundEvent.of(new Identifier("viafabricplus", "oof.hurt"));
+    private static final SoundEvent viaFabricPlus$oof_hurt = SoundEvent.of(Identifier.of("viafabricplus", "oof.hurt"));
 
     @Unique
     public boolean viaFabricPlus$isSprinting;
@@ -119,9 +118,9 @@ public abstract class MixinPlayerEntity extends LivingEntity {
     @Inject(method = "checkFallFlying", at = @At("HEAD"), cancellable = true)
     private void replaceFallFlyingCondition(CallbackInfoReturnable<Boolean> cir) {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_14_4)) {
-            if (!this.isOnGround() && this.getVelocity().y < 0D && !this.isFallFlying()) {
+            if (!this.isOnGround() && this.getVelocity().y < 0D && !this.isGliding()) {
                 final ItemStack itemStack = this.getEquippedStack(EquipmentSlot.CHEST);
-                if (itemStack.isOf(Items.ELYTRA) && ElytraItem.isUsable(itemStack)) {
+                if (itemStack.isOf(Items.ELYTRA) && itemStack.getDamage() < itemStack.getMaxDamage() - 1) {
                     cir.setReturnValue(true);
                     return;
                 }
@@ -134,8 +133,8 @@ public abstract class MixinPlayerEntity extends LivingEntity {
     private void onUpdatePose(CallbackInfo ci) {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_13_2)) {
             final EntityPose pose;
-            if (this.isFallFlying()) {
-                pose = EntityPose.FALL_FLYING;
+            if (this.isGliding()) {
+                pose = EntityPose.GLIDING;
             } else if (this.isSleeping()) {
                 pose = EntityPose.SLEEPING;
             } else if (this.isSwimming()) {

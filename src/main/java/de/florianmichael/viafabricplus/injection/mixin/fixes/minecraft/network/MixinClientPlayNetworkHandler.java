@@ -25,12 +25,10 @@ import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import de.florianmichael.viafabricplus.fixes.ClientsideFixes;
 import de.florianmichael.viafabricplus.fixes.data.recipe.RecipeInfo;
 import de.florianmichael.viafabricplus.fixes.data.recipe.Recipes1_11_2;
-import de.florianmichael.viafabricplus.injection.access.IDownloadingTerrainScreen;
 import de.florianmichael.viafabricplus.injection.access.IPlayerListHud;
 import de.florianmichael.viafabricplus.protocoltranslator.ProtocolTranslator;
 import de.florianmichael.viafabricplus.settings.impl.VisualSettings;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.DownloadingTerrainScreen;
 import net.minecraft.client.gui.screen.ingame.BookScreen;
 import net.minecraft.client.network.*;
 import net.minecraft.client.world.ClientWorld;
@@ -44,6 +42,7 @@ import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
+
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import net.raphimc.viabedrock.api.BedrockProtocolVersion;
@@ -56,6 +55,7 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -121,9 +121,9 @@ public abstract class MixinClientPlayNetworkHandler extends ClientCommonNetworkH
         }
     }
 
-    @WrapWithCondition(method = "onPlayerRespawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayNetworkHandler;startWorldLoading(Lnet/minecraft/client/network/ClientPlayerEntity;Lnet/minecraft/client/world/ClientWorld;Lnet/minecraft/client/gui/screen/DownloadingTerrainScreen$WorldEntryReason;)V"))
-    private boolean checkDimensionChange(ClientPlayNetworkHandler instance, ClientPlayerEntity player, ClientWorld world, DownloadingTerrainScreen.WorldEntryReason worldEntryReason, @Local(ordinal = 0) RegistryKey<World> registryKey) {
-        return ProtocolTranslator.getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_20_3) || registryKey != this.client.player.getWorld().getRegistryKey();
+    @WrapWithCondition(method = "onPlayerRespawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayNetworkHandler;startWorldLoading(Lnet/minecraft/client/network/ClientPlayerEntity;Lnet/minecraft/client/world/ClientWorld;)V"))
+    private boolean checkDimensionChange(ClientPlayNetworkHandler instance, ClientPlayerEntity player, ClientWorld world, @Local(ordinal = 0) RegistryKey<World> registryKey) {
+        return ProtocolTranslator.getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_20_3) || registryKey != this.client.player.clientWorld.getRegistryKey();
     }
 
     @WrapWithCondition(method = "onChatMessage", at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;error(Ljava/lang/String;Ljava/lang/Object;)V", remap = false))
@@ -151,7 +151,7 @@ public abstract class MixinClientPlayNetworkHandler extends ClientCommonNetworkH
     @Redirect(method = {"onEntityPosition", "onEntity"}, at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;isLogicalSideForUpdatingMovement()Z"))
     private boolean allowPlayerToBeMovedByEntityPackets(Entity instance) {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_19_3) || ProtocolTranslator.getTargetVersion().equals(BedrockProtocolVersion.bedrockLatest)) {
-            return instance.getControllingPassenger() instanceof PlayerEntity player ? player.isMainPlayer() : !instance.getWorld().isClient;
+            return instance.getControllingPassenger() instanceof PlayerEntity player ? player.isMainPlayer() : !this.client.world.isClient();
         } else {
             return instance.isLogicalSideForUpdatingMovement();
         }
@@ -167,20 +167,6 @@ public abstract class MixinClientPlayNetworkHandler extends ClientCommonNetworkH
     @Redirect(method = "onGameJoin", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayNetworkHandler;isSecureChatEnforced()Z"))
     private boolean removeSecureChatWarning(ClientPlayNetworkHandler instance) {
         return isSecureChatEnforced() || VisualSettings.global().disableSecureChatWarning.isEnabled();
-    }
-
-    @Inject(method = "onPlayerSpawnPosition", at = @At("RETURN"))
-    private void moveDownloadingTerrainClosing(PlayerSpawnPositionS2CPacket packet, CallbackInfo ci) {
-        if (ProtocolTranslator.getTargetVersion().betweenInclusive(ProtocolVersion.v1_18_2, ProtocolVersion.v1_20_2) && this.client.currentScreen instanceof IDownloadingTerrainScreen mixinDownloadingTerrainScreen) {
-            mixinDownloadingTerrainScreen.viaFabricPlus$setReady();
-        }
-    }
-
-    @Inject(method = "onPlayerPositionLook", at = @At("RETURN"))
-    private void closeDownloadingTerrain(PlayerPositionLookS2CPacket packet, CallbackInfo ci) {
-        if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_18) && this.client.currentScreen instanceof IDownloadingTerrainScreen mixinDownloadingTerrainScreen) {
-            mixinDownloadingTerrainScreen.viaFabricPlus$setReady();
-        }
     }
 
     @SuppressWarnings({"InvalidInjectorMethodSignature"})
@@ -200,12 +186,12 @@ public abstract class MixinClientPlayNetworkHandler extends ClientCommonNetworkH
         }
     }
 
-    @Redirect(method = "onEntityPosition", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;updateTrackedPositionAndAngles(DDDFFI)V"))
-    private void cancelSmallChanges(Entity instance, double x, double y, double z, float yaw, float pitch, int interpolationSteps) {
+    @Redirect(method = "onEntityPosition", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;updateTrackedPositionAndAngles(DDDFF)V"))
+    private void cancelSmallChanges(Entity instance, double x, double y, double z, float yaw, float pitch) {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_16_1) && Math.abs(instance.getX() - x) < 0.03125 && Math.abs(instance.getY() - y) < 0.015625 && Math.abs(instance.getZ() - z) < 0.03125) {
-            instance.updateTrackedPositionAndAngles(instance.getX(), instance.getY(), instance.getZ(), yaw, pitch, ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_15_2) ? 0 : interpolationSteps);
+            instance.updateTrackedPositionAndAngles(new net.minecraft.util.math.Vec3d(instance.getX(), instance.getY(), instance.getZ()), yaw, pitch);
         } else {
-            instance.updateTrackedPositionAndAngles(x, y, z, yaw, pitch, interpolationSteps);
+            instance.updateTrackedPositionAndAngles(new net.minecraft.util.math.Vec3d(x, y, z), yaw, pitch);
         }
     }
 
@@ -215,9 +201,9 @@ public abstract class MixinClientPlayNetworkHandler extends ClientCommonNetworkH
             final List<RecipeEntry<?>> recipes = new ArrayList<>();
             final List<RecipeInfo> recipeInfos = Recipes1_11_2.getRecipes(ProtocolTranslator.getTargetVersion());
             for (int i = 0; i < recipeInfos.size(); i++) {
-                recipes.add(recipeInfos.get(i).create(new Identifier("viafabricplus", "recipe/" + i)));
+                recipes.add(recipeInfos.get(i).create(Identifier.of("viafabricplus", "recipe/" + i)));
             }
-            this.onSynchronizeRecipes(new SynchronizeRecipesS2CPacket(recipes));
+            this.onSynchronizeRecipes(new SynchronizeRecipesS2CPacket(Collections.emptyMap(), new it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet<>()));
         }
         ClientsideFixes.GLOBAL_TABLIST_INDEX = 0;
         ((IPlayerListHud) MinecraftClient.getInstance().inGameHud.getPlayerListHud()).viaFabricPlus$setMaxPlayers(packet.maxPlayers());

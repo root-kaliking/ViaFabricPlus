@@ -51,6 +51,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class MixinBoatEntity extends VehicleEntity {
 
     @Shadow
+    private World world;
+
+    @Shadow
     private double x;
 
     @Shadow
@@ -60,6 +63,15 @@ public abstract class MixinBoatEntity extends VehicleEntity {
     private double z;
 
     @Shadow
+    private double prevX;
+
+    @Shadow
+    private double prevY;
+
+    @Shadow
+    private double prevZ;
+
+    @Shadow
     private double boatYaw;
 
     @Shadow
@@ -67,6 +79,24 @@ public abstract class MixinBoatEntity extends VehicleEntity {
 
     @Shadow
     private BoatEntity.Location location;
+
+    @Shadow
+    public boolean horizontalCollision;
+
+    @Shadow
+    protected java.util.Random random;
+
+    @Shadow
+    public abstract int getDamageWobbleTicks();
+
+    @Shadow
+    public abstract void setDamageWobbleTicks(int ticks);
+
+    @Shadow
+    public abstract float getDamageWobbleStrength();
+
+    @Shadow
+    public abstract void setDamageWobbleStrength(float strength);
 
     @Shadow
     public abstract LivingEntity getControllingPassenger();
@@ -93,10 +123,13 @@ public abstract class MixinBoatEntity extends VehicleEntity {
     }
 
     @Inject(method = "updateTrackedPositionAndAngles", at = @At("HEAD"), cancellable = true)
-    private void updateTrackedPositionAndAngles1_8(double x, double y, double z, float yaw, float pitch, int interpolationSteps, CallbackInfo ci) {
+    private void updateTrackedPositionAndAngles1_8(Vec3d pos, float yaw, float pitch, CallbackInfo ci) {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_8)) {
             ci.cancel();
             if (/*interpolate &&*/ this.hasPassengers() && ProtocolTranslator.getTargetVersion().newerThan(ProtocolVersion.v1_7_6)) {
+                final double x = pos.x;
+                final double y = pos.y;
+                final double z = pos.z;
                 this.prevX = x;
                 this.prevY = y;
                 this.prevZ = z;
@@ -106,8 +139,11 @@ public abstract class MixinBoatEntity extends VehicleEntity {
                 this.setVelocity(Vec3d.ZERO);
                 this.viaFabricPlus$boatVelocity = Vec3d.ZERO;
             } else {
+                final double x = pos.x;
+                final double y = pos.y;
+                final double z = pos.z;
                 if (!this.hasPassengers()) {
-                    this.viaFabricPlus$boatInterpolationSteps = interpolationSteps + 5;
+                    this.viaFabricPlus$boatInterpolationSteps = 5;
                 } else {
                     if (this.squaredDistanceTo(x, y, z) <= 1) {
                         return;
@@ -125,13 +161,8 @@ public abstract class MixinBoatEntity extends VehicleEntity {
         }
     }
 
-    @Override
-    public void setVelocityClient(double x, double y, double z) {
-        super.setVelocityClient(x, y, z);
-
-        if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_8)) {
-            this.viaFabricPlus$boatVelocity = new Vec3d(x, y, z);
-        }
+    public void setVelocityClient(net.minecraft.util.math.Vec3d velocity) {
+        this.viaFabricPlus$boatVelocity = velocity;
     }
 
     @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
@@ -156,7 +187,7 @@ public abstract class MixinBoatEntity extends VehicleEntity {
                 final double minY = this.getBoundingBox().minY + this.getBoundingBox().getLengthY() * partitionIndex / yPartitions - 0.125;
                 final double maxY = this.getBoundingBox().minY + this.getBoundingBox().getLengthY() * (partitionIndex + 1) / yPartitions - 0.125;
                 final Box box = new Box(this.getBoundingBox().minX, minY, this.getBoundingBox().minZ, this.getBoundingBox().maxX, maxY, this.getBoundingBox().maxZ);
-                if (BlockPos.stream(box).anyMatch(pos -> this.getWorld().getFluidState(pos).isIn(FluidTags.WATER))) {
+                if (BlockPos.stream(box).anyMatch(pos -> this.world.getFluidState(pos).isIn(FluidTags.WATER))) {
                     percentSubmerged += 1.0 / yPartitions;
                 }
             }
@@ -171,16 +202,16 @@ public abstract class MixinBoatEntity extends VehicleEntity {
                     if (this.random.nextBoolean()) {
                         final double x = this.getX() - rx * dForward * 0.8 + rz * dSideways;
                         final double z = this.getZ() - rz * dForward * 0.8 - rx * dSideways;
-                        this.getWorld().addParticle(ParticleTypes.SPLASH, x, this.getY() - 0.125D, z, this.getVelocity().x, this.getVelocity().y, this.getVelocity().z);
+                        this.world.addParticle(ParticleTypes.SPLASH, true, x, this.getY() - 0.125D, z, this.getVelocity().x, this.getVelocity().y, this.getVelocity().z);
                     } else {
                         final double x = this.getX() + rx + rz * dForward * 0.7;
                         final double z = this.getZ() + rz - rx * dForward * 0.7;
-                        this.getWorld().addParticle(ParticleTypes.SPLASH, x, this.getY() - 0.125D, z, this.getVelocity().x, this.getVelocity().y, this.getVelocity().z);
+                        this.world.addParticle(ParticleTypes.SPLASH, true, x, this.getY() - 0.125D, z, this.getVelocity().x, this.getVelocity().y, this.getVelocity().z);
                     }
                 }
             }
 
-            if (this.getWorld().isClient && !this.hasPassengers()) {
+            if (this.world.isClient && !this.hasPassengers()) {
                 if (this.viaFabricPlus$boatInterpolationSteps > 0) {
                     final double newX = this.getX() + (this.x - this.getX()) / this.viaFabricPlus$boatInterpolationSteps;
                     final double newY = this.getY() + (this.y - this.getY()) / this.viaFabricPlus$boatInterpolationSteps;
@@ -255,12 +286,12 @@ public abstract class MixinBoatEntity extends VehicleEntity {
                         for (int ddy = 0; ddy < 2; ddy++) {
                             final int dy = MathHelper.floor(this.getY()) + ddy;
                             final BlockPos pos = new BlockPos(dx, dy, dz);
-                            final Block block = this.getWorld().getBlockState(pos).getBlock();
+                            final Block block = this.world.getBlockState(pos).getBlock();
                             if (block == Blocks.SNOW) {
-                                this.getWorld().setBlockState(pos, Blocks.AIR.getDefaultState());
+                                this.world.setBlockState(pos, Blocks.AIR.getDefaultState());
                                 this.horizontalCollision = false;
                             } else if (block == Blocks.LILY_PAD) {
-                                this.getWorld().breakBlock(pos, true);
+                                this.world.removeBlock(pos, true);
                                 this.horizontalCollision = false;
                             }
                         }
@@ -291,7 +322,7 @@ public abstract class MixinBoatEntity extends VehicleEntity {
     @Inject(method = "updatePassengerPosition", at = @At(value = "HEAD"), cancellable = true)
     private void updatePassengerPosition1_8(Entity passenger, PositionUpdater positionUpdater, CallbackInfo ci) {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_8)) {
-            final Vec3d newPosition = EntityRidingOffsetsPre1_20_2.getMountedHeightOffset(this, passenger).add(this.getPos());
+            final Vec3d newPosition = EntityRidingOffsetsPre1_20_2.getMountedHeightOffset(this, passenger).add(this.getX(), this.getY(), this.getZ());
             positionUpdater.accept(passenger, newPosition.x, newPosition.y + EntityRidingOffsetsPre1_20_2.getHeightOffset(passenger), newPosition.z);
             ci.cancel();
         }

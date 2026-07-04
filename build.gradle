@@ -1,5 +1,5 @@
 plugins {
-	id "fabric-loom" version "1.6-SNAPSHOT"
+	id "net.fabricmc.fabric-loom-remap" version "1.17.13"
 	id "maven-publish"
 }
 
@@ -161,10 +161,4 @@ publishing {
 	}
 }
 
-idea {
-	module {
-		["run"].each {
-			excludeDirs << file("$it")
-		}
-	}
-}
+// 'idea' plugin removed in Gradle 9.x - IDE configuration no longer needed for CI builds

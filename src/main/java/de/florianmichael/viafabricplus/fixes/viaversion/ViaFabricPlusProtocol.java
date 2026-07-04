@@ -27,14 +27,12 @@ import com.viaversion.viaversion.api.protocol.packet.ServerboundPacketType;
 import com.viaversion.viaversion.api.protocol.packet.State;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import com.viaversion.viaversion.api.type.Types;
-import com.viaversion.viaversion.protocols.v1_20_3to1_20_5.packet.ClientboundPackets1_20_5;
-import com.viaversion.viaversion.protocols.v1_20_3to1_20_5.packet.ServerboundPackets1_20_5;
+import com.viaversion.viaversion.protocols.v1_21_5to1_21_6.packet.ServerboundPackets1_21_6;
+import com.viaversion.viaversion.protocols.v1_21_9to1_21_11.packet.ClientboundPackets1_21_11;
 import com.viaversion.viaversion.util.Key;
 import de.florianmichael.viafabricplus.protocoltranslator.ProtocolTranslator;
 import net.minecraft.network.packet.BrandCustomPayload;
 import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.network.packet.s2c.custom.DebugGameTestAddMarkerCustomPayload;
-import net.minecraft.network.packet.s2c.custom.DebugGameTestClearCustomPayload;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
 import net.raphimc.viabedrock.api.BedrockProtocolVersion;
@@ -52,13 +50,6 @@ public class ViaFabricPlusProtocol extends AbstractSimpleProtocol {
 
     public ViaFabricPlusProtocol() {
         registerMapping(BrandCustomPayload.ID, LegacyProtocolVersion.c0_0_15a_1, wrapper -> wrapper.passthrough(Types.STRING));
-        registerMapping(DebugGameTestAddMarkerCustomPayload.ID, ProtocolVersion.v1_14, wrapper -> {
-            wrapper.passthrough(Types.BLOCK_POSITION1_14);
-            wrapper.passthrough(Types.INT);
-            wrapper.passthrough(Types.STRING);
-            wrapper.passthrough(Types.INT);
-        });
-        registerMapping(DebugGameTestClearCustomPayload.ID, ProtocolVersion.v1_14, wrapper -> {});
     }
 
     @Override
@@ -118,11 +109,11 @@ public class ViaFabricPlusProtocol extends AbstractSimpleProtocol {
     }
 
     public static ServerboundPacketType getSetCreativeModeSlot() {
-        return ServerboundPackets1_20_5.SET_CREATIVE_MODE_SLOT;
+        return ServerboundPackets1_21_6.SET_CREATIVE_MODE_SLOT;
     }
 
     public static ClientboundPacketType getCustomPayload() {
-        return ClientboundPackets1_20_5.CUSTOM_PAYLOAD;
+        return ClientboundPackets1_21_11.CUSTOM_PAYLOAD;
     }
 
     @FunctionalInterface
