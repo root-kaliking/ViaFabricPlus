@@ -119,7 +119,7 @@ public abstract class MixinMultiplayerServerListWidget_ServerEntry {
             return;
         }
         final List<Text> tooltips = new ArrayList<>();
-        tooltips.add(tooltip.getContent());
+        tooltips.add(tooltip.content());
         if (GeneralSettings.global().showAdvertisedServerVersion.getValue()) {
             final ProtocolVersion version = ((IServerInfo) server).viaFabricPlus$translatingVersion();
             if (version != null) {
@@ -127,7 +127,7 @@ public abstract class MixinMultiplayerServerListWidget_ServerEntry {
                 tooltips.add(Text.translatable("base.viafabricplus.server_version", server.version.getString() + " (" + server.protocolVersion + ")"));
             }
         }
-        instance.setTooltip(Tooltip.of(tooltips.get(0), tooltips.size() > 1 ? tooltips.get(1) : null));
+        instance.setTooltip(Tooltip.of(tooltips.get(0)));
     }
 
 }

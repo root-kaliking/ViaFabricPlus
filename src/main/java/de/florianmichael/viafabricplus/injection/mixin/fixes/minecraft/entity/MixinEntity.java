@@ -54,6 +54,9 @@ public abstract class MixinEntity implements IEntity {
     private World world;
 
     @Shadow
+    private float prevYaw;
+
+    @Shadow
     protected Object2DoubleMap<TagKey<Fluid>> fluidHeight;
 
     @Shadow

@@ -60,7 +60,7 @@ public abstract class MixinCamelEntity extends AbstractHorseEntity {
 
         final float deltaDegrees = MathHelper.wrapDegrees(passengerYaw - this.getYaw());
         final float clampedDelta = MathHelper.clamp(deltaDegrees, -160.0F, 160.0F);
-        passenger.prevYaw += clampedDelta - deltaDegrees;
+        ((MixinEntity) (Object) passenger).prevYaw += clampedDelta - deltaDegrees;
 
         final float newYaw = passengerYaw + clampedDelta - deltaDegrees;
         passenger.setYaw(newYaw);

@@ -17,22 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.florianmichael.viafabricplus.injection.mixin.fixes.minecraft.entity;
+package de.florianmichael.viafabricplus.fixes.versioned.visual;
 
-import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
-import de.florianmichael.viafabricplus.protocoltranslator.ProtocolTranslator;
-import net.minecraft.entity.passive.AnimalEntity;
-import net.minecraft.world.World;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import net.minecraft.util.Identifier;
 
-@Mixin(AnimalEntity.class)
-public abstract class MixinAnimalEntity {
+public class FootStepParticle1_12_2 {
 
-    @Redirect(method = "interactMob", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;isClient:Z"))
-    private boolean changeIsClientCondition(World instance) {
-        return instance.isClient() && ProtocolTranslator.getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_15);
+    public static final Identifier ID = Identifier.of("viafabricplus", "footstep");
+    public static final int RAW_ID = 32;
+
+    public static void init() {
+        // Particle registration is handled by the mixins
     }
 
 }

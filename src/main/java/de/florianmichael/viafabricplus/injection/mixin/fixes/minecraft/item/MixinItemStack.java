@@ -23,15 +23,14 @@ import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import de.florianmichael.viafabricplus.fixes.versioned.Enchantments1_14_4;
 import de.florianmichael.viafabricplus.protocoltranslator.ProtocolTranslator;
 import de.florianmichael.viafabricplus.util.ItemUtil;
-import net.minecraft.client.item.TooltipType;
-import net.minecraft.component.DataComponentType;
+import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.component.ComponentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.TooltipAppender;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
@@ -57,7 +56,7 @@ public abstract class MixinItemStack {
     public abstract Item getItem();
 
     @Inject(method = "appendTooltip", at = @At("HEAD"), cancellable = true)
-    private <T extends TooltipAppender> void replaceEnchantmentTooltip(DataComponentType<T> componentType, Item.TooltipContext context, Consumer<Text> textConsumer, TooltipType type, CallbackInfo ci) {
+    private void replaceEnchantmentTooltip(Item.TooltipContext context, Consumer<Text> textConsumer, TooltipType type, CallbackInfo ci) {
         if (ProtocolTranslator.getTargetVersion().newerThan(ProtocolVersion.v1_14_4)) {
             return;
         }
@@ -66,13 +65,9 @@ public abstract class MixinItemStack {
         if (tag == null) {
             return;
         }
-        if (componentType == DataComponentTypes.ENCHANTMENTS) {
-            this.viaFabricPlus$appendEnchantments1_14_4("Enchantments", tag, textConsumer);
-            ci.cancel();
-        } else if (componentType == DataComponentTypes.STORED_ENCHANTMENTS) {
-            this.viaFabricPlus$appendEnchantments1_14_4("StoredEnchantments", tag, textConsumer);
-            ci.cancel();
-        }
+        this.viaFabricPlus$appendEnchantments1_14_4("Enchantments", tag, textConsumer);
+        this.viaFabricPlus$appendEnchantments1_14_4("StoredEnchantments", tag, textConsumer);
+        ci.cancel();
     }
 
     @Redirect(method = "appendAttributeModifierTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;getAttributeBaseValue(Lnet/minecraft/registry/entry/RegistryEntry;)D", ordinal = 0))

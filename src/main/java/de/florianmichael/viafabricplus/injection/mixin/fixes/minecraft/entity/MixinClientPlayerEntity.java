@@ -30,6 +30,7 @@ import de.florianmichael.viafabricplus.protocoltranslator.ProtocolTranslator;
 import de.florianmichael.viafabricplus.settings.impl.DebugSettings;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.input.Input;
+import net.minecraft.client.input.PlayerInput;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -51,6 +52,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @SuppressWarnings("ConstantValue")
 @Mixin(value = ClientPlayerEntity.class, priority = 2000)
 public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
+
+    @Shadow
+    private float prevYaw;
 
     @Shadow
     public Input input;
@@ -106,9 +110,9 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
         return ProtocolTranslator.getTargetVersion().newerThan(ProtocolVersion.v1_19_3) && instance.hasVehicle();
     }
 
-    @Redirect(method = "canStartSprinting", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;isFallFlying()Z"))
+    @Redirect(method = "canStartSprinting", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;isGliding()Z"))
     private boolean removeFallFlyingCheck(ClientPlayerEntity instance) {
-        return ProtocolTranslator.getTargetVersion().newerThan(ProtocolVersion.v1_19_3) && instance.isFallFlying();
+        return ProtocolTranslator.getTargetVersion().newerThan(ProtocolVersion.v1_19_3) && instance.isGliding();
     }
 
     @Redirect(method = "canSprint", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;hasVehicle()Z"))
@@ -151,12 +155,16 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
 
     @Inject(method = "tickMovement()V",
             slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;isCamera()Z")),
-            at = @At(value = "FIELD", target = "Lnet/minecraft/client/input/Input;sneaking:Z", ordinal = 0))
+            at = @At(value = "FIELD", target = "Lnet/minecraft/client/input/Input;playerInput:Lnet/minecraft/client/input/PlayerInput;", ordinal = 0))
     private void injectTickMovement(CallbackInfo ci) {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_14_4)) {
-            if (this.input.sneaking) {
-                this.input.movementSideways = (float) ((double) this.input.movementSideways / 0.3D);
-                this.input.movementForward = (float) ((double) this.input.movementForward / 0.3D);
+            if (this.input.playerInput.sneaking()) {
+                this.input.playerInput = new PlayerInput(
+                    (float) ((double) this.input.playerInput.forward() / 0.3D),
+                    (float) ((double) this.input.playerInput.sideways() / 0.3D),
+                    this.input.playerInput.sneaking(),
+                    this.input.playerInput.jumping()
+                );
             }
         }
     }
@@ -164,14 +172,14 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
     @Inject(method = "isWalking", at = @At("HEAD"), cancellable = true)
     private void easierUnderwaterSprinting(CallbackInfoReturnable<Boolean> cir) {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_14_1)) {
-            cir.setReturnValue(((ClientPlayerEntity) (Object) this).input.movementForward >= 0.8);
+            cir.setReturnValue(((ClientPlayerEntity) (Object) this).input.playerInput.forward() >= 0.8);
         }
     }
 
     @Redirect(method = "tickMovement()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/input/Input;hasForwardMovement()Z", ordinal = 0))
     private boolean disableSprintSneak(Input input) {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_14_1)) {
-            return input.movementForward >= 0.8F;
+            return input.playerInput.forward() >= 0.8F;
         } else {
             return input.hasForwardMovement();
         }

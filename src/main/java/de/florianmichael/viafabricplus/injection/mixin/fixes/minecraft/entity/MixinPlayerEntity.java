@@ -34,7 +34,7 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerAbilities;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ElytraItem;
+import net.minecraft.item.Equipment;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -119,9 +119,9 @@ public abstract class MixinPlayerEntity extends LivingEntity {
     @Inject(method = "checkFallFlying", at = @At("HEAD"), cancellable = true)
     private void replaceFallFlyingCondition(CallbackInfoReturnable<Boolean> cir) {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_14_4)) {
-            if (!this.isOnGround() && this.getVelocity().y < 0D && !this.isFallFlying()) {
+            if (!this.isOnGround() && this.getVelocity().y < 0D && !this.isGliding()) {
                 final ItemStack itemStack = this.getEquippedStack(EquipmentSlot.CHEST);
-                if (itemStack.isOf(Items.ELYTRA) && ElytraItem.isUsable(itemStack)) {
+                if (itemStack.isOf(Items.ELYTRA) && Equipment.isUsable(itemStack)) {
                     cir.setReturnValue(true);
                     return;
                 }
@@ -134,8 +134,8 @@ public abstract class MixinPlayerEntity extends LivingEntity {
     private void onUpdatePose(CallbackInfo ci) {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_13_2)) {
             final EntityPose pose;
-            if (this.isFallFlying()) {
-                pose = EntityPose.FALL_FLYING;
+            if (this.isGliding()) {
+                pose = EntityPose.GLIDING;
             } else if (this.isSleeping()) {
                 pose = EntityPose.SLEEPING;
             } else if (this.isSwimming()) {

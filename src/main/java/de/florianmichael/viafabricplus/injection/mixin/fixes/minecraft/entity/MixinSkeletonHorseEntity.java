@@ -37,10 +37,10 @@ public abstract class MixinSkeletonHorseEntity extends AbstractHorseEntity {
         super(entityType, world);
     }
 
-    @Inject(method = "getBaseMovementSpeedMultiplier", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getMovementSpeed", at = @At("HEAD"), cancellable = true)
     private void modifyBaseMovementSpeedMultiplier(CallbackInfoReturnable<Float> cir) {
         if (ProtocolTranslator.getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_12_2)) {
-            cir.setReturnValue(super.getBaseMovementSpeedMultiplier());
+            cir.setReturnValue(super.getMovementSpeed());
         }
     }
 

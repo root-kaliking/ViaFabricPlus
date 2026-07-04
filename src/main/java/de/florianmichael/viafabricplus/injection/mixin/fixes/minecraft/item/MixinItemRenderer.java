@@ -20,7 +20,7 @@
 package de.florianmichael.viafabricplus.injection.mixin.fixes.minecraft.item;
 
 import de.florianmichael.viafabricplus.settings.impl.VisualSettings;
-import net.minecraft.client.render.item.ItemModels;
+import net.minecraft.client.render.item.ItemModelManager;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.entity.LivingEntity;
@@ -39,12 +39,12 @@ public abstract class MixinItemRenderer {
 
     @Shadow
     @Final
-    private ItemModels models;
+    private ItemModelManager models;
 
     @Inject(method = "getModel", at = @At("HEAD"), cancellable = true)
     private void removeModel(ItemStack stack, World world, LivingEntity entity, int seed, CallbackInfoReturnable<BakedModel> cir) {
         if (VisualSettings.global().replacePetrifiedOakSlab.isEnabled() && world != null /* world is null in gui rendering */ && stack.isOf(Items.PETRIFIED_OAK_SLAB)) {
-            cir.setReturnValue(this.models.getModelManager().getMissingModel());
+            cir.setReturnValue(this.models.getMissingModel());
         }
     }
 

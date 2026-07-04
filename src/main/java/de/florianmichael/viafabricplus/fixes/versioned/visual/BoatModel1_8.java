@@ -17,22 +17,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.florianmichael.viafabricplus.injection.mixin.fixes.minecraft.entity;
+package de.florianmichael.viafabricplus.fixes.versioned.visual;
 
-import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
-import de.florianmichael.viafabricplus.protocoltranslator.ProtocolTranslator;
-import net.minecraft.entity.passive.AnimalEntity;
-import net.minecraft.world.World;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import net.minecraft.client.model.ModelPart;
+import net.minecraft.client.model.TexturedModelData;
+import net.minecraft.client.render.entity.model.EntityModelLayer;
+import net.minecraft.util.Identifier;
 
-@Mixin(AnimalEntity.class)
-public abstract class MixinAnimalEntity {
+public class BoatModel1_8 {
 
-    @Redirect(method = "interactMob", at = @At(value = "FIELD", target = "Lnet/minecraft/world/World;isClient:Z"))
-    private boolean changeIsClientCondition(World instance) {
-        return instance.isClient() && ProtocolTranslator.getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_15);
+    public static final EntityModelLayer MODEL_LAYER = new EntityModelLayer(Identifier.of("viafabricplus", "boat_1_8"), "main");
+
+    public static TexturedModelData getTexturedModelData() {
+        return TexturedModelData.of(null, 64, 64);
     }
 
 }
