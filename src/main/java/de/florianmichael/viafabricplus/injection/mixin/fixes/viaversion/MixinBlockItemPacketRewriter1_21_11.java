@@ -35,10 +35,10 @@ import com.viaversion.viaversion.libs.fastutil.ints.IntSet;
 import com.viaversion.viaversion.libs.gson.JsonArray;
 import com.viaversion.viaversion.libs.gson.JsonElement;
 import com.viaversion.viaversion.libs.gson.JsonObject;
-import com.viaversion.viaversion.protocols.v1_20_2to1_20_3.packet.ClientboundPacket1_20_3;
-import com.viaversion.viaversion.protocols.v1_20_3to1_20_5.Protocol1_20_3To1_20_5;
-import com.viaversion.viaversion.protocols.v1_20_3to1_20_5.packet.ServerboundPacket1_20_5;
-import com.viaversion.viaversion.protocols.v1_20_3to1_20_5.rewriter.BlockItemPacketRewriter1_20_5;
+import com.viaversion.viaversion.protocols.v1_21_7to1_21_9.packet.ClientboundPacket1_21_9;
+import com.viaversion.viaversion.protocols.v1_21_9to1_21_11.Protocol1_21_9To1_21_11;
+import com.viaversion.viaversion.protocols.v1_21_9to1_21_11.packet.ServerboundPacket1_21_11;
+import com.viaversion.viaversion.protocols.v1_21_9to1_21_11.rewriter.BlockItemPacketRewriter1_21_11;
 import com.viaversion.viaversion.rewriter.ItemRewriter;
 import de.florianmichael.viafabricplus.event.PostViaVersionLoadCallback;
 import de.florianmichael.viafabricplus.protocoltranslator.impl.ViaFabricPlusMappingDataLoader;
@@ -52,8 +52,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.*;
 
-@Mixin(value = BlockItemPacketRewriter1_20_5.class, remap = false)
-public abstract class MixinBlockItemPacketRewriter1_20_5 extends ItemRewriter<ClientboundPacket1_20_3, ServerboundPacket1_20_5, Protocol1_20_3To1_20_5> {
+@Mixin(value = BlockItemPacketRewriter1_21_11.class, remap = false)
+public abstract class MixinBlockItemPacketRewriter1_21_11 extends ItemRewriter<ClientboundPacket1_21_9, ServerboundPacket1_21_11, Protocol1_21_9To1_21_11> {
 
     @Unique
     private final Set<String> viaFabricPlus$foodItems_b1_7_3 = new HashSet<>();
@@ -67,12 +67,12 @@ public abstract class MixinBlockItemPacketRewriter1_20_5 extends ItemRewriter<Cl
     @Unique
     private final Map<ProtocolVersion, Map<String, ToolProperties>> viaFabricPlus$toolDataChanges = new LinkedHashMap<>();
 
-    public MixinBlockItemPacketRewriter1_20_5(Protocol1_20_3To1_20_5 protocol, Type<Item> itemType, Type<Item[]> itemArrayType, Type<Item> mappedItemType, Type<Item[]> mappedItemArrayType) {
+    public MixinBlockItemPacketRewriter1_21_11(Protocol1_21_9To1_21_11 protocol, Type<Item> itemType, Type<Item[]> itemArrayType, Type<Item> mappedItemType, Type<Item[]> mappedItemArrayType) {
         super(protocol, itemType, itemArrayType, mappedItemType, mappedItemArrayType);
     }
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    public void loadItemMappings(Protocol1_20_3To1_20_5 protocol, CallbackInfo ci) {
+    public void loadItemMappings(Protocol1_21_9To1_21_11 protocol, CallbackInfo ci) {
         // Technically it would be cleaner to split mapping loading into there respective protocols, but that will be impossible
         // in a clean way, so let's just wait for Via* to load all protocols and then load everything in here.
         this.viaFabricPlus$foodItems_b1_7_3.add("minecraft:apple");
@@ -148,7 +148,7 @@ public abstract class MixinBlockItemPacketRewriter1_20_5 extends ItemRewriter<Cl
         // Add item blocking by make the sword eatable, counterpart in MixinSwordItem
         if (user.getProtocolInfo().serverProtocolVersion().betweenInclusive(LegacyProtocolVersion.b1_8tob1_8_1, ProtocolVersion.v1_8)) {
             if (this.viaFabricPlus$swordItems1_8.contains(identifier)) {
-                data.set(StructuredDataKey.FOOD1_20_5, new FoodProperties(0, 0F, true, 3600, null, new FoodEffect[0]));
+                data.set(StructuredDataKey.FOOD1_21_11, new FoodProperties(0, 0F, true, 3600, null, new FoodEffect[0]));
             }
         }
 
@@ -163,7 +163,7 @@ public abstract class MixinBlockItemPacketRewriter1_20_5 extends ItemRewriter<Cl
         if (user.getProtocolInfo().serverProtocolVersion().olderThanOrEqualTo(LegacyProtocolVersion.b1_7tob1_7_3)) {
             if (this.viaFabricPlus$foodItems_b1_7_3.contains(identifier)) {
                 data.set(StructuredDataKey.MAX_STACK_SIZE, 1);
-                data.addEmpty(StructuredDataKey.FOOD1_20_5);
+                data.addEmpty(StructuredDataKey.FOOD1_21_11);
             }
         }
 
