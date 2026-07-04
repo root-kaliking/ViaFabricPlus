@@ -161,10 +161,4 @@ publishing {
 	}
 }
 
-idea {
-	module {
-		["run"].each {
-			excludeDirs << file("$it")
-		}
-	}
-}
+// 'idea' plugin removed in Gradle 9.x - IDE configuration no longer needed for CI builds
